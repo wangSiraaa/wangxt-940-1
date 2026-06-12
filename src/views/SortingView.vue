@@ -46,11 +46,13 @@
               <el-input-number
                 v-model="form.quantity"
                 :min="1"
-                :max="maxQuantity"
                 style="width: 100%"
               />
               <div class="tip">
                 当前可用库存: <b>{{ currentAvailable }}</b>
+                <span v-if="form.quantity > currentAvailable" style="color: #f56c6c; margin-left: 10px">
+                  ⚠ 分配数量已超过可用库存
+                </span>
               </div>
             </el-form-item>
           </el-col>
@@ -309,9 +311,6 @@ function resetForm() {
 }
 
 watch(() => form.value.batchId, () => {
-  if (form.value.quantity > currentAvailable.value) {
-    form.value.quantity = Math.max(1, currentAvailable.value)
-  }
 })
 
 onMounted(() => {

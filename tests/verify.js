@@ -226,6 +226,77 @@ test('nginx.conf 存在且配置正确', () => {
   assert(nginxConf.includes('try_files'), '缺少 SPA 路由支持')
 })
 
+console.log('\n🧪 检查超量分配页面回归验证...')
+const sortingViewPath = path.join(__dirname, '..', 'src/views/SortingView.vue')
+const sortingViewContent = fs.readFileSync(sortingViewPath, 'utf-8')
+const distributionViewPath = path.join(__dirname, '..', 'src/views/DistributionView.vue')
+const distributionViewContent = fs.readFileSync(distributionViewPath, 'utf-8')
+
+test('超量分配回归: 分拣视图不静默截断用户输入', () => {
+  assert(
+    !sortingViewContent.includes(':max="maxQuantity"'),
+    '分拣视图不应设置 el-input-number 的 max 属性，避免静默截断超量值'
+  )
+})
+
+test('超量分配回归: 分拣视图不在 watch 中自动修正 quantity', () => {
+  const watchBlock = sortingViewContent.match(/watch\(\(\) => form\.value\.batchId[\s\S]*?^\}\)/m)
+  if (watchBlock) {
+    assert(
+      !watchBlock[0].includes('form.value.quantity = Math'),
+      '分拣视图 watch 中不应自动修正 quantity 值'
+    )
+  }
+})
+
+test('超量分配回归: 分拣视图有实时超量提示', () => {
+  assert(
+    sortingViewContent.includes('分配数量已超过可用库存'),
+    '分拣视图缺少超量分配实时提示缺失'
+  )
+})
+
+test('超量分配回归: 分拣视图提交时有超量错误提示', () => {
+  assert(
+    sortingViewContent.includes('分配数量('),
+    '分拣视图提交时缺少超量错误提示缺失'
+  )
+})
+
+test('超量分配回归: 发放视图不静默截断用户输入', () => {
+  assert(
+    !distributionViewContent.includes(':max="maxQuantity"'),
+    '发放视图不应设置 el-input-number 的 max 属性，避免静默截断超量值'
+  )
+})
+
+test('超量分配回归: 发放视图不在 watch 中自动修正 quantity', () => {
+  const watchBlock = distributionViewContent.match(/watch\(\) => form\.value\.allocationId[\s\S]*?^\}\)/m)
+  if (watchBlock) {
+    assert(
+      !watchBlock[0].includes('form.value.quantity = Math'),
+      '发放视图 watch 中不应自动修正 quantity 值'
+    )
+  }
+})
+
+test('超量分配回归: store 层超量分配不创建记录不扣库存', () => {
+  assert(
+    storeContent.includes('超过当前可用库存'),
+    'store 层缺少超量分配判断'
+  )
+  const overCheckIdx = storeContent.indexOf('data.quantity > batch.availableQuantity')
+  const pushIdx = storeContent.indexOf('allocations.value.push')
+  assert(
+    overCheckIdx !== -1 && pushIdx !== -1,
+    '缺少超量检查或分配记录创建逻辑'
+  )
+  assert(
+    overCheckIdx < pushIdx,
+    '超量检查应在创建分配记录之前执行'
+  )
+})
+
 console.log('\n========================================')
 console.log('  测试结果汇总')
 console.log('========================================\n')
@@ -252,6 +323,7 @@ if (failed > 0) {
   console.log('  ✅ 已发放物资不能撤回，只能登记冲正')
   console.log('  ✅ 项目取消时未发放数量退回库存')
   console.log('  ✅ 冲正记录登记功能')
+  console.log('  ✅ 超量分配回归：不静默截断、保留用户输入、实时提示')
   console.log('\n🚀 可以执行以下命令构建和运行:')
   console.log('  构建: npm run build')
   console.log('  开发: npm run dev')
