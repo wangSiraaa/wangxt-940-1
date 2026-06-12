@@ -31,6 +31,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '冲正登记', icon: 'Warning' }
   },
   {
+    path: '/recall',
+    name: 'Recall',
+    component: () => import('@/views/RecallView.vue'),
+    meta: { title: '批次召回与调剂', icon: 'RefreshRight' }
+  },
+  {
     path: '/statistics',
     name: 'Statistics',
     component: () => import('@/views/StatisticsView.vue'),

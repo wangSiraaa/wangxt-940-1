@@ -16,7 +16,7 @@
             :key="item.path"
             :index="item.path"
           >
-            <el-icon><component :is="item.icon" /></el-icon>
+            <el-icon><component :is="iconMap[item.icon]" /></el-icon>
             <span>{{ item.title }}</span>
           </el-menu-item>
         </el-menu>
@@ -68,8 +68,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Sort, Check, Warning, DataAnalysis, Present } from '@element-plus/icons-vue'
+import { Plus, Sort, Check, Warning, DataAnalysis, Present, RefreshRight } from '@element-plus/icons-vue'
 import { useMaterialStore } from '@/stores/material'
+
+const iconMap: Record<string, any> = {
+  Plus,
+  Sort,
+  Check,
+  Warning,
+  DataAnalysis,
+  Present,
+  RefreshRight
+}
 
 const route = useRoute()
 const router = useRouter()
